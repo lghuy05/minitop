@@ -1,0 +1,88 @@
+#include <ctype.h>
+#include <dirent.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+// check is_number
+int is_number(const char *s) {
+  if (!s || !*s)
+    return 0;
+  for (; *s != '\0'; s++) {
+    if (!isdigit(*s))
+      return 0;
+  }
+  return 1;
+}
+
+// read PID and Process Name
+int read_pid(const char *pid, char *name, size_t size) {
+  char path[256];
+  snprintf(path, sizeof(path), "/proc/%s/stat", pid);
+
+  FILE *f = fopen(path, "r");
+  if (!f)
+    return -1;
+  char buff[4096];
+  if (!fgets(buff, sizeof(buff), f)) {
+    fclose(f);
+    return -1;
+  }
+}
+
+int main() {
+
+  while (1) {
+    printf("\033[?25l");
+    printf("\033[H\033[2J");
+    printf("Minitop (Ctrl + C to quit)\n");
+    printf("--------------------------\n");
+
+    // Uptime and idle
+    FILE *f = fopen("/proc/uptime", "r");
+    if (f) {
+      double uptime = 0.0;
+      double idle_total = 0.0;
+      if (fscanf(f, "%lf %lf", &uptime, &idle_total) == 2) {
+        printf("Uptime: %.1f seconds | Idle: %.1f seconds\n", uptime,
+               idle_total);
+      }
+    } else {
+      perror("fopen");
+      fclose(f);
+      return 1;
+    }
+
+    // Load avg
+    f = fopen("/proc/loadavg", "r");
+    if (f) {
+      double load1 = 0.0;
+      double load2 = 0.0;
+      double load3 = 0.0;
+      if (fscanf(f, "%lf %lf %lf", &load1, &load2, &load3) == 3) {
+        printf("Load average: %.2f %.2f %.2f\n", load1, load2, load3);
+      }
+      fclose(f);
+    }
+
+    // Process counts
+    int proc_count = 0;
+    DIR *dir = opendir("/proc");
+    if (dir) {
+      struct dirent *ent;
+      while ((ent = readdir(dir)) != NULL) {
+        if (is_number(ent->d_name)) {
+          proc_count++;
+        }
+      }
+      closedir(dir);
+    }
+    printf("Total processes: %d\n", proc_count);
+
+    fflush(stdout);
+    sleep(1);
+  };
+
+  printf("\033[?25h");
+  return 0;
+}

@@ -2,7 +2,7 @@
 
 A tiny `top`-like process monitor for Linux. It reads `/proc` to show uptime,
 load average, total process count, and the top processes by CPU usage.
-
+![image alt](https://github.com/lghuy05/minitop/blob/6728c06997c90a4946e01dc21297251971beeffd/image.png)
 ## Watch how i code it from scratch
 [![Watch the video](https://img.youtube.com/vi/27yF10VppUg/maxresdefault.jpg)](https://youtu.be/27yF10VppUg)
 
